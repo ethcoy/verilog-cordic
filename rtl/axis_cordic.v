@@ -39,7 +39,7 @@ assign m_axis_tvalid = m_axis_tvalid_reg;
 
 // Turn into a function that returns cos, sin, and current angle to allow for recursive computation (i.e., compute 2, 3, 4, etc., value ahead)
 
-localparam c_ITERATION_WIDTH = $clog2(c_FRACTIONAL_WIDTH);
+localparam c_ITERATION_WIDTH = $clog2(c_FRACTIONAL_WIDTH) + 1'b1;
 
 reg [c_ITERATION_WIDTH - 1:0] r_iterations = {c_ITERATION_WIDTH{1'b0}};
 
@@ -100,16 +100,15 @@ always @(posedge i_clk) begin
         end
 
         c_STATE_COMPUTE: begin
-            r_iterations <= r_iterations + 1'b1;
-            r_current_angle <= r_current_angle + r_sign*r_atan_lut[r_iterations];
-            
+            r_iterations <= r_iterations + 1'b1;            
             r_x <= r_x - $signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations))*r_y;
             r_y <= $signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations))*r_x + r_y;
-            r_current_angle <= r_current_angle + r_atan_lut[r_iterations];
+            r_current_angle <= r_current_angle + r_atan_lut[r_iterations - 1'b1];
+            $display("%b\n", r_atan_lut[r_iterations - 1'b1]);
             if (s_axis_angle_tdata_reg - r_current_angle < $signed({c_DATA_WIDTH{1'b0}})) begin
                 r_x <= r_x + $signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations))*r_y;
                 r_y <= -($signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)))*r_x + r_y;
-                r_current_angle <= r_current_angle - r_atan_lut[r_iterations];
+                r_current_angle <= r_current_angle - r_atan_lut[r_iterations - 1'b1];
             end
                         
             if (r_iterations == c_FRACTIONAL_WIDTH) begin

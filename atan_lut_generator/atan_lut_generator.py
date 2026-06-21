@@ -12,6 +12,7 @@ FRACTIONAL_BITS = 16
 ATAN_LUT = []
 for i in range(FRACTIONAL_BITS):
     ATAN_LUT.append(Fxp(math.atan(2**(-i)), dtype=f'U{INTEGER_BITS}.{FRACTIONAL_BITS}'))
+    print(ATAN_LUT[i].bin())
 
 PI = Fxp(math.pi, dtype=f'U{INTEGER_BITS}.{FRACTIONAL_BITS}')
 print(f'Q{INTEGER_BITS}.{FRACTIONAL_BITS} of pi in hex is: {PI.hex()[2:]}')
