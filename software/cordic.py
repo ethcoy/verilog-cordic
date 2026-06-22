@@ -3,25 +3,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from fxpmath import Fxp
 
-atan_table = []
-
 integer_bits = 4
-fractional_bits = 5
+fractional_bits = 16
 
+desired_angle = Fxp(math.pi/2, dtype=f'S{integer_bits}.{fractional_bits}')
+
+atan_table = []
 for i in range(fractional_bits):
     atan_table.append(Fxp(math.atan(2**(-i)), dtype=f'S{integer_bits}.{fractional_bits}'))
     # print(atan_table[i])
 
-desired_angle = Fxp(127.8124*(math.pi)/180, dtype=f'S{integer_bits}.{fractional_bits}')
-
 O = [0]*fractional_bits
 X = []
 Y = []
-
-x1 = Fxp(2.5, dtype=f'U2.1')
-x2 = Fxp(2, dtype=f'U2.1')
-mult = Fxp(x1*x2, dtype=f'U2.1')
-print(mult)
 
 factor = 1
 
@@ -76,17 +70,17 @@ print(f'True value of cos(desired_angle)/factor: {math.cos(desired_angle)/factor
 print(f'True value of sin(desired_angle)/factor: {math.sin(desired_angle)/factor}')
 print(factor)
 
-theta = np.linspace(0, 2*np.pi, 150)
-radius = 1
-a = radius*np.cos(theta)
-b = radius*np.sin(theta)
-plt.plot(a, b, color='b')
+# theta = np.linspace(0, 2*np.pi, 150)
+# radius = 1
+# a = radius*np.cos(theta)
+# b = radius*np.sin(theta)
+# plt.plot(a, b, color='b')
 
-plt.quiver(O[0:fractional_bits - 1], O[0:fractional_bits - 1], X[0:fractional_bits - 1], Y[0:fractional_bits - 1], angles='xy', scale_units='xy', scale=1, width=0.005)
-plt.quiver(0, 0, math.cos(desired_angle), math.sin(desired_angle), angles='xy', scale_units='xy', scale=1, color='b', width=0.005)
-plt.xlim(-2, 2)
-plt.ylim(-2, 2)
+# plt.quiver(O[0:fractional_bits - 1], O[0:fractional_bits - 1], X[0:fractional_bits - 1], Y[0:fractional_bits - 1], angles='xy', scale_units='xy', scale=1, width=0.005)
+# plt.quiver(0, 0, math.cos(desired_angle), math.sin(desired_angle), angles='xy', scale_units='xy', scale=1, color='b', width=0.005)
+# plt.xlim(-2, 2)
+# plt.ylim(-2, 2)
 
-plt.gca().set_aspect('equal')
-plt.grid()
-plt.show()
+# plt.gca().set_aspect('equal')
+# plt.grid()
+# plt.show()

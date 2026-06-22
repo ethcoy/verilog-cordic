@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="0" />
+    <testcase name="axis_cordic" classname="axis_cordic_tb" file="/home/ecoyle/repos/verilog-cordic/tb/axis_cordic_tb.py" lineno="27" time="0.0017039775848388672" sim_time_ns="500.0" ratio_time="293431.08996781864">
+      <failure error_type="TypeError" error_msg="Coroutine function &lt;function await_m_axis at 0x7f43b9efd3a0&gt; should be called prior to being scheduled." />
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -12,8 +12,8 @@ module axis_cordic #(
      * AXI-stream input
      */
     input wire signed [c_DATA_WIDTH - 1:0] s_axis_angle_tdata,
-    input wire s_axis_angle_tvalid,
-    output wire s_axis_angle_tready,
+    input wire s_axis_tvalid,
+    output wire s_axis_tready,
 
     /*
      * AXI-stream output
@@ -27,7 +27,7 @@ module axis_cordic #(
 reg signed [c_DATA_WIDTH - 1:0] s_axis_angle_tdata_reg = {c_DATA_WIDTH{1'b0}};
 reg s_axis_angle_tready_reg = 1'b1;
 
-assign s_axis_angle_tready = s_axis_angle_tready_reg;
+assign s_axis_tready = s_axis_angle_tready_reg;
 
 reg signed [c_DATA_WIDTH - 1:0] m_axis_cos_tdata_reg = {c_DATA_WIDTH{1'b0}};
 reg signed [c_DATA_WIDTH - 1:0] m_axis_sin_tdata_reg = {c_DATA_WIDTH{1'b0}};
@@ -49,13 +49,9 @@ localparam c_STATE_WAIT = 2'd2;
 
 reg [1:0] r_state = c_STATE_IDLE;
 
-function [(c_INTEGER_WIDTH + c_FRACTIONAL_WIDTH)*2 - 1:0] fixed_mult (input [c_INTEGER_WIDTH + c_FRACTIONAL_WIDTH - 1:0] a, input [c_INTEGER_WIDTH + c_FRACTIONAL_WIDTH - 1:0] b);
+function signed [(c_INTEGER_WIDTH + c_FRACTIONAL_WIDTH)*2 - 1:0] fixed_mult (input signed [c_INTEGER_WIDTH + c_FRACTIONAL_WIDTH - 1:0] a, input signed [c_INTEGER_WIDTH + c_FRACTIONAL_WIDTH - 1:0] b);
     fixed_mult = a*b >> c_FRACTIONAL_WIDTH;
 endfunction
-
-//function [c_INTEGER_WIDTH + c_FRACTIONAL_WIDTH - 1:0] fixed_align (input [c_INTEGER_WIDTH - 1:0] a);
-//    fixed_align = a << c_FRACTIONAL_WIDTH;
-//endfunction
 
 reg signed [c_DATA_WIDTH - 1:0] r_atan_lut [0:c_FRACTIONAL_WIDTH - 1];
 
@@ -66,8 +62,6 @@ end
 
 reg signed [c_DATA_WIDTH - 1:0] r_pi = c_PI;
 
-reg signed [c_DATA_WIDTH - 1:0] r_x = {c_DATA_WIDTH{1'b0}};
-reg signed [c_DATA_WIDTH - 1:0] r_y = {c_DATA_WIDTH{1'b0}};
 reg signed [c_DATA_WIDTH - 1:0] r_current_angle = {c_DATA_WIDTH{1'b0}};
  
 always @(posedge i_clk) begin
@@ -75,25 +69,23 @@ always @(posedge i_clk) begin
         c_STATE_IDLE: begin
             s_axis_angle_tready_reg <= 1'b1;
             r_iterations <= 1'b1;
-            if (s_axis_angle_tvalid & s_axis_angle_tready) begin
+            m_axis_cos_tdata_reg <= {c_DATA_WIDTH{1'b0}};
+            m_axis_sin_tdata_reg <= {c_DATA_WIDTH{1'b0}};
+            if (s_axis_tvalid & s_axis_tready) begin
                 s_axis_angle_tdata_reg <= s_axis_angle_tdata;
                 s_axis_angle_tready_reg <= 1'b0;
                 r_state <= c_STATE_COMPUTE;
                 if ($signed({c_DATA_WIDTH{1'b0}}) <= s_axis_angle_tdata && s_axis_angle_tdata <= r_pi) begin
-                    $display("1");
-                    r_y <= 1'b1 << c_FRACTIONAL_WIDTH;
+                    m_axis_sin_tdata_reg <= 1'b1 << c_FRACTIONAL_WIDTH;
                     r_current_angle <= r_pi >> 1'b1;
                 end else if (r_pi <= s_axis_angle_tdata && s_axis_angle_tdata <= 2*r_pi) begin
-                    $display("2");
-                    r_y <= {c_INTEGER_WIDTH{1'b1}} << c_FRACTIONAL_WIDTH;
+                    m_axis_sin_tdata_reg <= {c_INTEGER_WIDTH{1'b1}} << c_FRACTIONAL_WIDTH;
                     r_current_angle <= 3*r_pi >> 1'b1;
                 end else if (-r_pi <= s_axis_angle_tdata && s_axis_angle_tdata <= $signed({c_DATA_WIDTH{1'b0}})) begin
-                    $display("3");
-                    r_y <= {c_INTEGER_WIDTH{1'b1}} << c_FRACTIONAL_WIDTH;
+                    m_axis_sin_tdata_reg <= {c_INTEGER_WIDTH{1'b1}} << c_FRACTIONAL_WIDTH;
                     r_current_angle <= -(r_pi >> 1'b1);
                 end else begin
-                    $display("4");
-                    r_y <= 1'b1 << c_FRACTIONAL_WIDTH;
+                    m_axis_sin_tdata_reg <= 1'b1 << c_FRACTIONAL_WIDTH;
                     r_current_angle <= -(3*r_pi >> 1'b1);
                 end
             end
@@ -101,23 +93,26 @@ always @(posedge i_clk) begin
 
         c_STATE_COMPUTE: begin
             r_iterations <= r_iterations + 1'b1;            
-            r_x <= r_x - $signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations))*r_y;
-            r_y <= $signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations))*r_x + r_y;
+            m_axis_cos_tdata_reg <= m_axis_cos_tdata_reg - fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_sin_tdata_reg);
+            m_axis_sin_tdata_reg <= fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_cos_tdata_reg) + m_axis_sin_tdata_reg;
             r_current_angle <= r_current_angle + r_atan_lut[r_iterations - 1'b1];
-            $display("%b\n", r_atan_lut[r_iterations - 1'b1]);
             if (s_axis_angle_tdata_reg - r_current_angle < $signed({c_DATA_WIDTH{1'b0}})) begin
-                r_x <= r_x + $signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations))*r_y;
-                r_y <= -($signed((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)))*r_x + r_y;
+                m_axis_cos_tdata_reg <= m_axis_cos_tdata_reg + fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_sin_tdata_reg);
+                m_axis_sin_tdata_reg <= -fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_cos_tdata_reg) + m_axis_sin_tdata_reg;
                 r_current_angle <= r_current_angle - r_atan_lut[r_iterations - 1'b1];
             end
                         
             if (r_iterations == c_FRACTIONAL_WIDTH) begin
+                m_axis_tvalid_reg <= 1'b1;
                 r_state <= c_STATE_WAIT;
             end
         end
 
         c_STATE_WAIT: begin
-            
+            if (m_axis_tready & m_axis_tvalid) begin
+                m_axis_tvalid_reg <= 1'b0;
+                r_state <= c_STATE_IDLE;
+            end
 
         end
 
