@@ -1,6 +1,0 @@
-<testsuites name="results">
-  <testsuite name="all" package="all">
-    <property name="random_seed" value="0" />
-    <testcase name="axis_cordic" classname="axis_cordic_tb" file="/home/ecoyle/repos/verilog-cordic/tb/axis_cordic_tb.py" lineno="15" time="0.004023075103759766" sim_time_ns="1520.0" ratio_time="377820.4385445063" />
-  </testsuite>
-</testsuites>

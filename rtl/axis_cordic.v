@@ -68,7 +68,7 @@ always @(posedge i_clk) begin
     case (r_state)
         c_STATE_IDLE: begin
             s_axis_angle_tready_reg <= 1'b1;
-            r_iterations <= 1'b1;
+            r_iterations <= {c_ITERATION_WIDTH{1'b0}};
             m_axis_cos_tdata_reg <= {c_DATA_WIDTH{1'b0}};
             m_axis_sin_tdata_reg <= {c_DATA_WIDTH{1'b0}};
             if (s_axis_tvalid & s_axis_tready) begin
@@ -93,16 +93,16 @@ always @(posedge i_clk) begin
 
         c_STATE_COMPUTE: begin
             r_iterations <= r_iterations + 1'b1;            
-            m_axis_cos_tdata_reg <= m_axis_cos_tdata_reg - fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_sin_tdata_reg);
-            m_axis_sin_tdata_reg <= fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_cos_tdata_reg) + m_axis_sin_tdata_reg;
-            r_current_angle <= r_current_angle + r_atan_lut[r_iterations - 1'b1];
+            m_axis_cos_tdata_reg <= m_axis_cos_tdata_reg - (m_axis_sin_tdata_reg >>> r_iterations);
+            m_axis_sin_tdata_reg <= (m_axis_cos_tdata_reg >>> r_iterations) + m_axis_sin_tdata_reg;
+            r_current_angle <= r_current_angle + r_atan_lut[r_iterations];
             if (s_axis_angle_tdata_reg - r_current_angle < $signed({c_DATA_WIDTH{1'b0}})) begin
-                m_axis_cos_tdata_reg <= m_axis_cos_tdata_reg + fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_sin_tdata_reg);
-                m_axis_sin_tdata_reg <= -fixed_mult(((2'd2 << c_FRACTIONAL_WIDTH) >> (r_iterations)), m_axis_cos_tdata_reg) + m_axis_sin_tdata_reg;
-                r_current_angle <= r_current_angle - r_atan_lut[r_iterations - 1'b1];
+                m_axis_cos_tdata_reg <= m_axis_cos_tdata_reg + (m_axis_sin_tdata_reg >>> r_iterations);
+                m_axis_sin_tdata_reg <= -(m_axis_cos_tdata_reg >>> r_iterations) + m_axis_sin_tdata_reg;;
+                r_current_angle <= r_current_angle - r_atan_lut[r_iterations];
             end
                         
-            if (r_iterations == c_FRACTIONAL_WIDTH) begin
+            if (r_iterations == c_FRACTIONAL_WIDTH - 1'b1) begin
                 m_axis_tvalid_reg <= 1'b1;
                 r_state <= c_STATE_WAIT;
             end
