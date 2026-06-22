@@ -23,7 +23,11 @@ with open("./../rtl/atan_lut.mem", "w") as f:
     for i in range(FRACTIONAL_BITS):
         print(ATAN_LUT[i].hex()[2:], file=f)
 
-with open("./../tb/sim_build/atan_lut.mem", "w") as f:
+with open("./../tb/axis_cordic_iterative/sim_build/atan_lut.mem", "w") as f:
+    for i in range(FRACTIONAL_BITS):
+        print(ATAN_LUT[i].hex()[2:], file=f)
+
+with open("./../tb/cordic/sim_build/atan_lut.mem", "w") as f:
     for i in range(FRACTIONAL_BITS):
         print(ATAN_LUT[i].hex()[2:], file=f)
 
@@ -32,5 +36,8 @@ with open("./../tb/sim_build/atan_lut.mem", "w") as f:
 with open("./../rtl/pi.mem", "w") as f:
     print(PI.hex()[2:], file=f)
 
-with open("./../tb/sim_build/pi.mem", "w") as f:
+with open("./../tb/axis_cordic_iterative/sim_build/pi.mem", "w") as f:
+    print(PI.hex()[2:], file=f)
+
+with open("./../tb/cordic/sim_build/pi.mem", "w") as f:
     print(PI.hex()[2:], file=f)

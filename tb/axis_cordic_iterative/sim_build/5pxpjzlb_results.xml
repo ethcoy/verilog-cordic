@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="0" />
+    <testcase name="axis_cordic_iterative" classname="axis_cordic_iterative_tb" file="/home/ecoyle/repos/verilog-cordic/tb/axis_cordic_iterative/axis_cordic_iterative_tb.py" lineno="39" time="0.01786661148071289" sim_time_ns="4410.0" ratio_time="246829.12060636794" />
+  </testsuite>
+</testsuites>

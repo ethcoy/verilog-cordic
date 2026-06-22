@@ -1,4 +1,4 @@
-module axis_cordic #(
+module axis_cordic_iterative #(
     parameter c_INTEGER_WIDTH = 4,
     parameter c_FRACTIONAL_WIDTH = 16,
     // Fixed-point representation of pi

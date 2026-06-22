@@ -37,7 +37,7 @@ async def await_m_axis(m_clk, m_axis_tvalid, m_axis_tready, *signals):
             m_axis_tready.value = 0
 
 @cocotb.test()
-async def axis_cordic(dut):
+async def axis_cordic_iterative(dut):
 
     dut.i_rst.value = 0
     dut.i_clk.value = 0
@@ -89,10 +89,10 @@ c_PI = parameters['c_PI']
 
 if __name__ == "__main__":
     run(verilog_sources = [
-            './../rtl/axis_cordic.v',
+            './../../rtl/axis_cordic_iterative.v',
         ],
-        toplevel = "axis_cordic",
-        module = "axis_cordic_tb",
+        toplevel = "axis_cordic_iterative",
+        module = "axis_cordic_iterative_tb",
         parameters = parameters,
         sim_build = "sim_build/",
         timescale = "1ns/1ps",
