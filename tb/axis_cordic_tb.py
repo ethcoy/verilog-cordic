@@ -31,7 +31,6 @@ async def await_m_axis(m_clk, m_axis_tvalid, m_axis_tready, *signals):
         if (m_axis_tvalid.value):
             m_axis_tready.value = 1
             for signal in signals:
-                print(signal)
                 print(f'{signal=}: {signal.value.to_signed()/div}')
             print()
             await RisingEdge(m_clk)
